@@ -6,7 +6,7 @@ The application collects structured legal-policy responses from a research team 
 
 ## Step 2: Architecture plan
 
-The app uses Next.js App Router with TypeScript and Tailwind CSS. The survey is rendered from `lib/surveyConfig.ts`, validated with Zod, autosaved in LocalStorage, reviewed before submission, and posted to API routes. API routes validate payloads and insert into Supabase when public anon configuration is present. The dashboard uses mock data until production admin authentication and read policies are configured.
+The app uses Next.js App Router with TypeScript and Tailwind CSS. The survey is rendered from `lib/surveyConfig.ts`, validated with Zod, autosaved in LocalStorage, reviewed before submission, and posted to API routes. API routes validate payloads and insert into Supabase when public anon configuration is present. The dashboard uses mock data until production admin protection and server-side live reads are configured.
 
 ## Step 3: Survey design principles
 

@@ -50,6 +50,7 @@ create table if not exists survey_responses (
   selected_artemis_policies text[],
   top_priorities text[],
   final_recommendation text,
+  user_agent text,
   survey_version text default '1.0'
 );
 
@@ -178,6 +179,7 @@ git push -u origin main
 ## Troubleshooting
 
 - If submissions do not appear, confirm `.env.local`, table names, and RLS insert policies.
+- If survey submission reports a missing `user_agent` column, run `alter table survey_responses add column if not exists user_agent text;`.
 - If `/admin` still shows mock data, confirm `ADMIN_DASHBOARD_LIVE_DATA=true`, `SUPABASE_SERVICE_ROLE_KEY`, and deployment protection.
 - If GitHub push fails, run `gh auth login` or add the remote manually.
 - If build fails after editing survey content, check for malformed question objects or non-string option values.
