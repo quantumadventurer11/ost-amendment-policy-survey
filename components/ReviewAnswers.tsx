@@ -11,6 +11,13 @@ import type { SurveyDraft } from "@/lib/surveyTypes";
 const consent =
   "By submitting, you agree that your responses may be used internally by the Celestial Governance Initiative for policy analysis, survey improvement, report drafting, and preparation of recommendations concerning the Outer Space Treaty, national space legislation, and international frameworks such as the Artemis Accords.";
 
+interface SubmitResponse {
+  ok?: boolean;
+  mode?: "supabase" | "local-only";
+  warning?: string;
+  error?: unknown;
+}
+
 export function ReviewAnswers() {
   const router = useRouter();
   const [draft] = useState<SurveyDraft | null>(() => loadDraft());
@@ -49,8 +56,18 @@ export function ReviewAnswers() {
       return;
     }
 
+    const result = (await response.json()) as SubmitResponse;
+    if (result.mode === "local-only") {
+      setStatus("Accepted in local development mode only. Configure Supabase before collecting production responses.");
+      window.setTimeout(() => {
+        clearDraft();
+        router.push("/thank-you?mode=local");
+      }, 900);
+      return;
+    }
+
     clearDraft();
-    router.push("/thank-you");
+    router.push("/thank-you?mode=supabase");
   };
 
   if (!draft) {

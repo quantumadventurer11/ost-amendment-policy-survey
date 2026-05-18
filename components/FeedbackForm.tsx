@@ -16,6 +16,13 @@ const feedbackTypes = [
 
 const priorities = ["Low", "Medium", "High", "Critical"];
 
+interface FeedbackResponse {
+  ok?: boolean;
+  mode?: "supabase" | "local-only";
+  warning?: string;
+  error?: unknown;
+}
+
 export function FeedbackForm() {
   const params = useSearchParams();
   const [status, setStatus] = useState("");
@@ -44,7 +51,12 @@ export function FeedbackForm() {
       setStatus("Feedback submission failed. Please check required fields or Supabase configuration.");
       return;
     }
-    setStatus("Feedback submitted. Thank you.");
+    const result = (await response.json()) as FeedbackResponse;
+    setStatus(
+      result.mode === "local-only"
+        ? "Feedback accepted in local development mode only. Configure Supabase before production review."
+        : "Feedback saved to Supabase. Thank you.",
+    );
     setForm((current) => ({ ...current, feedback_text: "", suggested_revision: "" }));
   };
 

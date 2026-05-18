@@ -5,7 +5,15 @@ import { countQuestionAnswers, countTopPriorities, getCheckboxQuestions, getRadi
 import { downloadText, responsesToCsv } from "@/lib/exportCsv";
 import type { StoredSurveyResponse } from "@/lib/surveyTypes";
 
-export function ResultsDashboard({ responses, usingMockData }: { responses: StoredSurveyResponse[]; usingMockData: boolean }) {
+export function ResultsDashboard({
+  responses,
+  usingMockData,
+  liveDataEnabled,
+}: {
+  responses: StoredSurveyResponse[];
+  usingMockData: boolean;
+  liveDataEnabled: boolean;
+}) {
   const artemisData = countQuestionAnswers(responses, "13.1");
   const priorityData = countTopPriorities(responses);
   const radioQuestions = getRadioQuestions().filter((question) => countQuestionAnswers(responses, question.id).length);
@@ -18,7 +26,12 @@ export function ResultsDashboard({ responses, usingMockData }: { responses: Stor
     <div className="space-y-6">
       {usingMockData ? (
         <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-          This dashboard is using mock/local data. Configure Supabase and protect admin access before using this page in production.
+          This dashboard is using mock/local data. Configure Supabase, enable live admin reads, and protect admin access before using this page in production.
+        </div>
+      ) : null}
+      {!usingMockData && liveDataEnabled ? (
+        <div className="rounded border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-900">
+          Live response data is visible on this route. Keep Vercel deployment protection or app-level authentication enabled before sharing this URL.
         </div>
       ) : null}
 
@@ -39,6 +52,15 @@ export function ResultsDashboard({ responses, usingMockData }: { responses: Stor
           </div>
         </div>
       </section>
+
+      {!usingMockData && responses.length === 0 ? (
+        <section className="rounded border border-slate-200 bg-white p-6">
+          <h2 className="text-xl font-semibold">No live responses yet</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            Supabase live data is connected, but the `survey_responses` table does not contain any rows available to this dashboard.
+          </p>
+        </section>
+      ) : null}
 
       <ChartBlock title="Artemis endorsement breakdown" data={artemisData} />
       <ChartBlock title="Top ranked amendment priorities" data={priorityData} />

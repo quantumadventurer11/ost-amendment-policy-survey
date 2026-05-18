@@ -16,14 +16,21 @@ Open `http://localhost:3000`.
 
 ## Environment
 
-Copy `.env.example` to `.env.local` and add only public Supabase anon credentials:
+Copy `.env.example` to `.env.local`. Respondent submissions use only public Supabase anon credentials:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-Never expose a Supabase service role key in this app.
+Live admin reads are disabled by default. To enable live results on a protected admin deployment, add server-only values:
+
+```env
+ADMIN_DASHBOARD_LIVE_DATA=true
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+Never expose a Supabase service role key in client code, browser-accessible variables, screenshots, or the repository. In Vercel, `SUPABASE_SERVICE_ROLE_KEY` must be a server environment variable only.
 
 ## Supabase SQL
 
@@ -77,6 +84,8 @@ to anon
 with check (true);
 ```
 
+Do not add public `select` policies for `survey_responses` or `survey_feedback` unless you fully understand the data exposure risk. The live admin dashboard reads through a server-only Supabase service role key so response data does not need to be readable by the public anon key.
+
 ## Running locally
 
 ```powershell
@@ -92,7 +101,13 @@ All survey content lives in `lib/surveyConfig.ts`. Preserve stable question IDs 
 
 ## Exporting results
 
-The admin page includes CSV and JSON export buttons. In v1 it uses mock data unless a protected live-data read path is added.
+The admin page includes CSV and JSON export buttons. By default it uses mock data. It reads live Supabase data only when all of the following are true:
+
+- `NEXT_PUBLIC_SUPABASE_URL` is set.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set.
+- `SUPABASE_SERVICE_ROLE_KEY` is set as a server-only environment variable.
+- `ADMIN_DASHBOARD_LIVE_DATA=true`.
+- `/admin` is protected through Vercel deployment protection or app-level authentication.
 
 ## Reviewing feedback
 
@@ -103,8 +118,22 @@ Feedback is submitted through `/feedback` and stored in `survey_feedback` when S
 1. Push the repository to GitHub.
 2. Import it into Vercel.
 3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Confirm Supabase RLS policies are enabled.
-5. Protect the admin route before public release.
+4. Confirm Supabase RLS insert policies are enabled.
+5. Enable Vercel deployment protection or add app-level authentication before showing live admin results.
+6. Add `SUPABASE_SERVICE_ROLE_KEY` as a server-only Vercel environment variable.
+7. Set `ADMIN_DASHBOARD_LIVE_DATA=true` only after admin access is protected.
+
+## Pilot launch checklist
+
+Before sharing the survey:
+
+- Run `npm run lint` and `npm run build`.
+- Submit one anonymous survey response with Supabase configured.
+- Submit one feedback item with Supabase configured.
+- Confirm both rows appear in Supabase.
+- Confirm `/admin` shows mock data when `ADMIN_DASHBOARD_LIVE_DATA=false`.
+- Confirm `/admin` shows live response counts only after protection and `ADMIN_DASHBOARD_LIVE_DATA=true`.
+- Export CSV and JSON from `/admin` and confirm expected rows are included.
 
 ## GitHub repository
 
@@ -135,18 +164,20 @@ git push -u origin main
 - Name, email, role, and respondent type are optional.
 - Do not collect sensitive personal data.
 - Only Supabase anon keys belong in client-accessible environment variables.
-- The admin page is not authenticated in v1 and must not be presented as secure.
-- Add protected admin authentication and restricted read policies before exposing live results.
+- The admin page must be protected before live data is enabled.
+- Do not create anon `select` policies for response tables for normal pilot use.
+- Use `SUPABASE_SERVICE_ROLE_KEY` only as a server-side secret for protected admin reads.
 
 ## Known limitations
 
-- Admin results use mock data by default.
-- No production authentication is included.
+- Admin results use mock data by default unless live data is explicitly enabled.
+- No custom production authentication is included; use Vercel deployment protection for the pilot or add app-level auth later.
 - API routes accept submissions only when Supabase is configured; otherwise they return a local-only success response for development.
 - Legal-policy text reflects supplied project framing and does not add external legal citations.
 
 ## Troubleshooting
 
 - If submissions do not appear, confirm `.env.local`, table names, and RLS insert policies.
+- If `/admin` still shows mock data, confirm `ADMIN_DASHBOARD_LIVE_DATA=true`, `SUPABASE_SERVICE_ROLE_KEY`, and deployment protection.
 - If GitHub push fails, run `gh auth login` or add the remote manually.
 - If build fails after editing survey content, check for malformed question objects or non-string option values.
