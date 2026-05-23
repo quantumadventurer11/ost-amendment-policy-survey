@@ -30,9 +30,12 @@ Live admin reads are disabled by default. To enable live results on a protected 
 # Server-side admin controls. Keep live data disabled until /admin is protected.
 ADMIN_DASHBOARD_LIVE_DATA=true
 SUPABASE_SERVICE_ROLE_KEY=
+ADMIN_BASIC_AUTH_USER=
+ADMIN_BASIC_AUTH_PASSWORD=
 ```
 
 Never expose a Supabase service role key in client code, browser-accessible variables, screenshots, or the repository. In Vercel, `SUPABASE_SERVICE_ROLE_KEY` must be a server environment variable only.
+`ADMIN_BASIC_AUTH_PASSWORD` should be a strong random password stored only in local `.env.local` and Vercel environment variables.
 
 ## Supabase SQL
 
@@ -131,7 +134,7 @@ The admin page includes CSV and JSON export buttons. By default it uses mock dat
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set.
 - `SUPABASE_SERVICE_ROLE_KEY` is set as a server-only environment variable.
 - `ADMIN_DASHBOARD_LIVE_DATA=true`.
-- `/admin` is protected through Vercel deployment protection or app-level authentication.
+- `/admin` is protected through app-level Basic Auth by setting `ADMIN_BASIC_AUTH_USER` and `ADMIN_BASIC_AUTH_PASSWORD`.
 
 The automatic report is available at `/admin/report`. It uses the same mock/live data source as `/admin` and can export Markdown, CSV, and JSON. Protect `/admin/report` the same way as `/admin` before enabling live data.
 
@@ -145,9 +148,9 @@ Feedback is submitted through `/feedback` and stored in `survey_feedback` when S
 2. Import it into Vercel.
 3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 4. Confirm Supabase RLS insert policies are enabled.
-5. Enable Vercel deployment protection or add app-level authentication before showing live admin results.
+5. Add `ADMIN_BASIC_AUTH_USER` and `ADMIN_BASIC_AUTH_PASSWORD` to protect `/admin` and `/admin/report`.
 6. Add `SUPABASE_SERVICE_ROLE_KEY` as a server-only Vercel environment variable.
-7. Set `ADMIN_DASHBOARD_LIVE_DATA=true` only after admin access is protected.
+7. Set `ADMIN_DASHBOARD_LIVE_DATA=true` only after admin credentials are configured.
 
 ## Pilot launch checklist
 
@@ -158,6 +161,7 @@ Before sharing the survey:
 - Submit one feedback item with Supabase configured.
 - Confirm both rows appear in Supabase.
 - Confirm `/admin` shows mock data when `ADMIN_DASHBOARD_LIVE_DATA=false`.
+- Confirm `/admin` prompts for Basic Auth after admin credentials are configured.
 - Confirm `/admin` shows live response counts only after protection and `ADMIN_DASHBOARD_LIVE_DATA=true`.
 - Export CSV and JSON from `/admin` and confirm expected rows are included.
 
@@ -193,6 +197,7 @@ git push -u origin main
 - The admin page must be protected before live data is enabled.
 - Do not create anon `select` policies for response tables for normal pilot use.
 - Use `SUPABASE_SERVICE_ROLE_KEY` only as a server-side secret for protected admin reads.
+- If `ADMIN_DASHBOARD_LIVE_DATA=true` but Basic Auth credentials are missing, the app returns `503` for `/admin` instead of exposing live data.
 
 ## Known limitations
 
