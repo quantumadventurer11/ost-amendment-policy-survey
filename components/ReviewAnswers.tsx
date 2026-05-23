@@ -45,14 +45,16 @@ export function ReviewAnswers() {
         comments,
         artemis_support: typeof answers["13.1"] === "string" ? answers["13.1"] : "",
         selected_artemis_policies: Array.isArray(answers["13.2"]) ? answers["13.2"] : [],
-        top_priorities: Array.isArray(answers["14.1"]) ? answers["14.1"].slice(0, 3) : [],
+        top_priorities: Array.isArray(answers["14.1"]) ? answers["14.1"] : [],
         final_recommendation: typeof answers["15.2"] === "string" ? answers["15.2"] : "",
         survey_version: surveyConfig.surveyVersion,
       }),
     });
 
     if (!response.ok) {
-      setStatus("Submission failed. Please check the configuration or try again.");
+      const body = await response.json().catch(() => ({}));
+      const detail = typeof body.error === "string" ? `: ${body.error}` : "";
+      setStatus(`Submission failed${detail}. Please check configuration or try again.`);
       return;
     }
 

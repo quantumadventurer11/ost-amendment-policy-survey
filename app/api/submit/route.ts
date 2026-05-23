@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   });
 
   if (!parsed.success) {
+    console.error("[submit] Zod validation error:", parsed.error.flatten());
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
 
   const { error } = await supabase.from("survey_responses").insert(parsed.data);
   if (error) {
+    console.error("[submit] Supabase insert error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

@@ -19,6 +19,7 @@ Open `http://localhost:3000`.
 Copy `.env.example` to `.env.local`. Respondent submissions use only public Supabase anon credentials:
 
 ```env
+# Public browser-safe Supabase values used for respondent and feedback inserts.
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
@@ -26,6 +27,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 Live admin reads are disabled by default. To enable live results on a protected admin deployment, add server-only values:
 
 ```env
+# Server-side admin controls. Keep live data disabled until /admin is protected.
 ADMIN_DASHBOARD_LIVE_DATA=true
 SUPABASE_SERVICE_ROLE_KEY=
 ```
@@ -34,7 +36,16 @@ Never expose a Supabase service role key in client code, browser-accessible vari
 
 ## Supabase SQL
 
-Run this SQL in Supabase before accepting production submissions:
+Run the migration in `supabase/migrations/001_create_survey_tables.sql` before accepting production submissions.
+
+If you use the Supabase CLI:
+
+```powershell
+supabase link --project-ref zmkoyezcoyqqtcporqaq
+supabase db push
+```
+
+If you do not use the CLI, paste the migration SQL into the Supabase SQL Editor and run it. The migration creates the same tables and policies as the summary below:
 
 ```sql
 create table if not exists survey_responses (
@@ -56,11 +67,17 @@ create table if not exists survey_responses (
 
 alter table survey_responses enable row level security;
 
-create policy "Allow public survey submissions"
+create policy "allow_anon_insert"
 on survey_responses
 for insert
 to anon
 with check (true);
+
+create policy "allow_service_select"
+on survey_responses
+for select
+to service_role
+using (true);
 
 create table if not exists survey_feedback (
   id uuid primary key default gen_random_uuid(),
@@ -78,11 +95,17 @@ create table if not exists survey_feedback (
 
 alter table survey_feedback enable row level security;
 
-create policy "Allow public survey feedback"
+create policy "allow_anon_feedback_insert"
 on survey_feedback
 for insert
 to anon
 with check (true);
+
+create policy "allow_service_feedback_select"
+on survey_feedback
+for select
+to service_role
+using (true);
 ```
 
 Do not add public `select` policies for `survey_responses` or `survey_feedback` unless you fully understand the data exposure risk. The live admin dashboard reads through a server-only Supabase service role key so response data does not need to be readable by the public anon key.
@@ -109,6 +132,8 @@ The admin page includes CSV and JSON export buttons. By default it uses mock dat
 - `SUPABASE_SERVICE_ROLE_KEY` is set as a server-only environment variable.
 - `ADMIN_DASHBOARD_LIVE_DATA=true`.
 - `/admin` is protected through Vercel deployment protection or app-level authentication.
+
+The automatic report is available at `/admin/report`. It uses the same mock/live data source as `/admin` and can export Markdown, CSV, and JSON. Protect `/admin/report` the same way as `/admin` before enabling live data.
 
 ## Reviewing feedback
 

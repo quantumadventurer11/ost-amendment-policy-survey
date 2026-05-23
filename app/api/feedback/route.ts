@@ -7,6 +7,7 @@ export async function POST(request: Request) {
   const parsed = feedbackSubmissionSchema.safeParse(json);
 
   if (!parsed.success) {
+    console.error("[feedback] Zod validation error:", parsed.error.flatten());
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
 
   const { error } = await supabase.from("survey_feedback").insert(parsed.data);
   if (error) {
+    console.error("[feedback] Supabase insert error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

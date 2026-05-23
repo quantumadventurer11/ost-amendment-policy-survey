@@ -104,7 +104,7 @@ export const surveyConfig: SurveyConfig = {
           "Individual",
           "Organization",
           "Unsure / prefer not to say",
-        ]),
+        ], { required: false }),
       ],
     },
     {

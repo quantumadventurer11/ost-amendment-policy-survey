@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { countQuestionAnswers, countTopPriorities, getCheckboxQuestions, getRadioQuestions } from "@/lib/analytics";
 import { downloadText, responsesToCsv } from "@/lib/exportCsv";
@@ -49,6 +50,7 @@ export function ResultsDashboard({
           <div className="mt-3 flex gap-2">
             <button onClick={exportCsv} className="rounded border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100">CSV</button>
             <button onClick={exportJson} className="rounded border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100">JSON</button>
+            <Link href="/admin/report" className="rounded border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100">Report</Link>
           </div>
         </div>
       </section>
@@ -99,8 +101,8 @@ function ChartBlock({ title, data, compact = false }: { title: string; data: { n
     <div className="rounded border border-slate-200 bg-white p-4">
       <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
       {data.length ? (
-        <div className={compact ? "mt-3 h-52" : "mt-3 h-72"}>
-          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={compact ? 208 : 288}>
+        <div className="mt-3 w-full" style={{ minHeight: compact ? 208 : 288 }}>
+          <ResponsiveContainer width="100%" height={compact ? 208 : 288}>
             <BarChart data={data} layout="vertical" margin={{ left: 20, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" allowDecimals={false} />
